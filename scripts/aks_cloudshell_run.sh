@@ -23,6 +23,92 @@ ensure_helm() {
   curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 }
 
+aks_size_available() {
+  local size="$1"
+  local found
+
+  found="$({
+    az vm list-skus \
+      --location "$LOCATION" \
+      --resource-type virtualMachines \
+      --size "$size" \
+      --query "[?name=='$size' && (restrictions==null || length(restrictions)==\`0\`)].name | [0]" \
+      -o tsv
+  } 2>/dev/null || true)"
+
+  [[ "$found" == "$size" ]]
+}
+
+create_aks_cluster_with_fallback() {
+  local fallback_sizes=(
+    Standard_D2s_v5
+    Standard_D2s_v4
+    Standard_B2s
+    Standard_B2ms
+    Standard_A2_v2
+  )
+
+  local size_candidates=("$NODE_SIZE")
+  local candidate
+  for candidate in "${fallback_sizes[@]}"; do
+    if [[ "$candidate" != "$NODE_SIZE" ]]; then
+      size_candidates+=("$candidate")
+    fi
+  done
+
+  local count_candidates=("$NODE_COUNT")
+  if [[ "$NODE_COUNT" != "1" ]]; then
+    count_candidates+=("1")
+  fi
+
+  local size count
+  local quota_related_error="false"
+  local err_file
+  err_file="$(mktemp)"
+
+  for size in "${size_candidates[@]}"; do
+    if ! aks_size_available "$size"; then
+      continue
+    fi
+
+    for count in "${count_candidates[@]}"; do
+      log "Trying AKS create with NODE_SIZE=$size NODE_COUNT=$count"
+
+      if az aks create \
+        --resource-group "$RG" \
+        --name "$AKS_NAME" \
+        --node-count "$count" \
+        --node-vm-size "$size" \
+        --generate-ssh-keys \
+        --attach-acr "$ACR_NAME" \
+        --enable-addons monitoring > /dev/null 2>"$err_file"; then
+        NODE_SIZE="$size"
+        NODE_COUNT="$count"
+        rm -f "$err_file"
+        log "AKS created successfully with NODE_SIZE=$NODE_SIZE NODE_COUNT=$NODE_COUNT"
+        return
+      fi
+
+      if grep -qiE 'InsufficientVCPUQuota|ErrCode_InsufficientVCPUQuota|OperationNotAllowed|Quota' "$err_file"; then
+        quota_related_error="true"
+        log "Quota-related failure with NODE_SIZE=$size NODE_COUNT=$count; trying next option"
+        continue
+      fi
+
+      cat "$err_file" >&2
+      rm -f "$err_file"
+      die "AKS creation failed with non-quota error for NODE_SIZE=$size NODE_COUNT=$count"
+    done
+  done
+
+  rm -f "$err_file"
+  if [[ "$quota_related_error" == "true" ]]; then
+    die "Unable to create AKS due to quota limits after trying multiple NODE_SIZE/NODE_COUNT combinations. Try NODE_COUNT=1, choose a cheaper size (for example Standard_B2s), or request quota increase."
+  fi
+
+  die "Could not find an allowed AKS VM size in $LOCATION for this subscription. Set NODE_SIZE manually from: az vm list-skus --location $LOCATION --resource-type virtualMachines --query \"[?restrictions==null].name\" -o tsv"
+}
+
 wait_for_jobs() {
   local timeout_seconds="${1:-7200}"
   local start_time now jobs job failed_count
@@ -120,14 +206,7 @@ ACR_LOGIN_SERVER="$(az acr show -n "$ACR_NAME" -g "$RG" --query loginServer -o t
 
 log "Creating AKS cluster if needed"
 if ! az aks show --resource-group "$RG" --name "$AKS_NAME" >/dev/null 2>&1; then
-  az aks create \
-    --resource-group "$RG" \
-    --name "$AKS_NAME" \
-    --node-count "$NODE_COUNT" \
-    --node-vm-size "$NODE_SIZE" \
-    --generate-ssh-keys \
-    --attach-acr "$ACR_NAME" \
-    --enable-addons monitoring >/dev/null
+  create_aks_cluster_with_fallback
 else
   log "AKS cluster already exists; skipping create"
 fi
