@@ -1,6 +1,12 @@
 # AKS Cloud Shell - Deployment and Results (Cloud Shell only)
 
-Follow these commands exactly in **Azure Cloud Shell** (Bash). Replace the placeholder values shown in ALL_CAPS.
+Preferred one-shot path:
+
+```bash
+bash scripts/aks_cloudshell_run.sh
+```
+
+If you want to control the run, set environment variables first, then run the script. The manual commands below are the same workflow broken into steps.
 
 ## Quick overview
 - Creates an Azure Container Registry (ACR) and AKS cluster
