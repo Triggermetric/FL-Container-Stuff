@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: plot-results
+  namespace: nt114-fl
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: plot
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "plot_results.py"]
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results

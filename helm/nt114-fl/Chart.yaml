@@ -1,0 +1,6 @@
+apiVersion: v2
+name: nt114-fl
+description: Federated learning with blockchain, IPFS, and ZKP helpers for AKS
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

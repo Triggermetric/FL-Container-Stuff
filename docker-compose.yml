@@ -1,0 +1,139 @@
+services:
+  ganache:
+    image: trufflesuite/ganache:v7.9.2
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "7545"
+      - --chain.chainId
+      - "1337"
+      - --wallet.mnemonic
+      - "test test test test test test test test test test test junk"
+    ports:
+      - "7545:7545"
+
+  ipfs:
+    image: ipfs/kubo:v0.32.1
+    command: ["daemon", "--migrate=true"]
+    ports:
+      - "4001:4001"
+      - "4001:4001/udp"
+      - "5001:5001"
+      - "8085:8080"
+    volumes:
+      - ipfs-data:/data/ipfs
+      - ipfs-export:/export
+
+  contract-init:
+    build: .
+    command: ["deploy_contract.py"]
+    environment:
+      WEB3_PROVIDER_URI: http://ganache:7545
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+    volumes:
+      - .:/app
+    depends_on:
+      - ganache
+    profiles:
+      - bootstrap
+
+  fl-server:
+    build: .
+    command: ["fl_server.py"]
+    environment:
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ganache
+      - ipfs
+
+  client-1:
+    build: .
+    command: ["fl_client.py", "1", "non_iid"]
+    environment:
+      CLIENT_ID: "1"
+      SPLIT_TYPE: non_iid
+      SERVER_ADDRESS: fl-server:8080
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    depends_on:
+      - fl-server
+
+  client-2:
+    build: .
+    command: ["fl_client.py", "2", "non_iid"]
+    environment:
+      CLIENT_ID: "2"
+      SPLIT_TYPE: non_iid
+      SERVER_ADDRESS: fl-server:8080
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    depends_on:
+      - fl-server
+
+  client-3:
+    build: .
+    command: ["fl_client.py", "3", "non_iid"]
+    environment:
+      CLIENT_ID: "3"
+      SPLIT_TYPE: non_iid
+      SERVER_ADDRESS: fl-server:8080
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    depends_on:
+      - fl-server
+
+  client-4:
+    build: .
+    command: ["fl_client.py", "4", "non_iid"]
+    environment:
+      CLIENT_ID: "4"
+      SPLIT_TYPE: non_iid
+      SERVER_ADDRESS: fl-server:8080
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    depends_on:
+      - fl-server
+
+  client-5:
+    build: .
+    command: ["fl_client.py", "5", "non_iid"]
+    environment:
+      CLIENT_ID: "5"
+      SPLIT_TYPE: non_iid
+      SERVER_ADDRESS: fl-server:8080
+      WEB3_PROVIDER_URI: http://ganache:7545
+      IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+      CONTRACT_ADDRESS_FILE: /app/runtime/reputation-address.json
+      FAULTY_CLIENTS: ${FAULTY_CLIENTS:-}
+    volumes:
+      - .:/app
+    depends_on:
+      - fl-server
+
+volumes:
+  ipfs-data:
+  ipfs-export:

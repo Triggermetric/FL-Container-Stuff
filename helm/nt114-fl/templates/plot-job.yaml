@@ -1,0 +1,32 @@
+{{- if .Values.plot.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: plot-results-{{ .Release.Revision }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "nt114-fl.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: plot
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "plot_results.py"]
+          env:
+            - name: MODE
+              value: {{ .Values.plot.mode | quote }}
+            - name: RESULTS_DIR
+              value: /results
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+{{- end }}

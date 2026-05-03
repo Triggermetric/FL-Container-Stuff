@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fl-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "nt114-fl.labels" . | nindent 4 }}
+data:
+  WEB3_PROVIDER_URI: http://ganache:7545
+  IPFS_API_ADDR: /dns4/ipfs/tcp/5001/http
+  CONTRACT_ARTIFACT: {{ .Values.contract.artifact }}
+  CONTRACT_ADDRESS_FILE: {{ .Values.contract.addressFile }}
+  SERVER_ADDRESS: fl-server:{{ .Values.fl.serverPort }}
+  SPLIT_TYPE: {{ .Values.fl.splitType }}

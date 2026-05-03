@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ipfs
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ipfs
+  template:
+    metadata:
+      labels:
+        app: ipfs
+    spec:
+      containers:
+        - name: ipfs
+          image: ipfs/kubo:v0.32.1
+          args: ["daemon", "--migrate=true"]
+          ports:
+            - containerPort: 5001
+            - containerPort: 4001
+          volumeMounts:
+            - name: ipfs-data
+              mountPath: /data/ipfs
+      volumes:
+        - name: ipfs-data
+          persistentVolumeClaim:
+            claimName: ipfs-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ipfs
+  namespace: nt114-fl
+spec:
+  selector:
+    app: ipfs
+  ports:
+    - name: api
+      port: 5001
+      targetPort: 5001
+    - name: swarm
+      port: 4001
+      targetPort: 4001

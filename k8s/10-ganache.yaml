@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ganache
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ganache
+  template:
+    metadata:
+      labels:
+        app: ganache
+    spec:
+      containers:
+        - name: ganache
+          image: trufflesuite/ganache:v7.9.2
+          args:
+            - --host
+            - 0.0.0.0
+            - --port
+            - "7545"
+            - --chain.chainId
+            - "1337"
+            - --wallet.mnemonic
+            - "test test test test test test test test test test test junk"
+          ports:
+            - containerPort: 7545
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ganache
+  namespace: nt114-fl
+spec:
+  selector:
+    app: ganache
+  ports:
+    - name: rpc
+      port: 7545
+      targetPort: 7545

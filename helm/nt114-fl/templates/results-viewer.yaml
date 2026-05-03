@@ -1,0 +1,30 @@
+{{- if .Values.resultsViewer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: results-viewer
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "nt114-fl.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: results-viewer
+  template:
+    metadata:
+      labels:
+        app: results-viewer
+    spec:
+      containers:
+        - name: viewer
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 365d"]
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+{{- end }}

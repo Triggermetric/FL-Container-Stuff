@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: reputation-deploy
+  namespace: nt114-fl
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: reputation-deploy
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: deploy
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "deploy_contract.py"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results

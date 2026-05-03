@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-server
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-server
+  template:
+    metadata:
+      labels:
+        app: fl-server
+    spec:
+      initContainers:
+        - name: wait-for-contract
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until [ -f /results/runtime/reputation-address.json ]; do sleep 2; done
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      containers:
+        - name: fl-server
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_server.py"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: FAULTY_CLIENTS
+              value: ""
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fl-server
+  namespace: nt114-fl
+spec:
+  type: ClusterIP
+  selector:
+    app: fl-server
+  ports:
+    - name: grpc
+      port: 8080
+      targetPort: 8080

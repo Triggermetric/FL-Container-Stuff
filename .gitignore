@@ -1,0 +1,44 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+
+# ===== Virtual Environment =====
+venv/
+.env/
+.env.*
+
+# ===== Dataset & Data =====
+data/
+dataset/
+*.npy
+
+# ===== Model files =====
+*.pt
+*.pth
+
+# ===== Logs =====
+*.log
+
+# ===== Compressed files =====
+*.zip
+*.tar
+*.gz
+
+# ===== OS files =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.vscode/
+.idea/
+build/
+models/
+history/
+plots/
+log/
+build/
+reputation.json
+blockchain.py
+# Node.js
+node_modules/
+npm-debug.log

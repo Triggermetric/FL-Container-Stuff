@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fl-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "nt114-fl.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: fl-server
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-contract
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until [ -f {{ .Values.contract.addressFile }} ]; do sleep 2; done
+              until nc -z ganache 7545; do sleep 2; done
+              until nc -z ipfs 5001; do sleep 2; done
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      containers:
+        - name: fl-server
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "fl_server.py"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CONTRACT_ADDRESS_FILE
+              value: {{ .Values.contract.addressFile }}
+            - name: FAULTY_CLIENTS
+              value: {{ .Values.fl.faultyClients | quote }}
+            - name: HISTORY_DIR
+              value: /results/history
+            - name: RESULTS_DIR
+              value: /results
+          ports:
+            - containerPort: {{ .Values.fl.serverPort }}
+          volumeMounts:
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fl-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "nt114-fl.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: fl-server
+  ports:
+    - name: grpc
+      port: {{ .Values.fl.serverPort }}
+      targetPort: {{ .Values.fl.serverPort }}

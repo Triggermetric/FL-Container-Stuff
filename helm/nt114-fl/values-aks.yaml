@@ -1,0 +1,21 @@
+image:
+  repository: YOUR_ACR_NAME.azurecr.io/project-nt114
+  tag: latest
+  pullPolicy: IfNotPresent
+
+storage:
+  className: azurefile-csi
+  resultsSize: 20Gi
+  ipfsSize: 10Gi
+
+fl:
+  clientCount: 5
+  splitType: non_iid
+  faultyClients: ""
+
+plot:
+  enabled: false
+  mode: non_iid
+
+resultsViewer:
+  enabled: true

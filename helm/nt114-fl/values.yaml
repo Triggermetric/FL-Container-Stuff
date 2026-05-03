@@ -1,0 +1,36 @@
+namespace: nt114-fl
+
+image:
+  repository: YOUR_ACR_NAME.azurecr.io/project-nt114
+  tag: latest
+  pullPolicy: IfNotPresent
+
+ganache:
+  image: trufflesuite/ganache:v7.9.2
+  chainId: "1337"
+  mnemonic: "test test test test test test test test test test test junk"
+
+ipfs:
+  image: ipfs/kubo:v0.32.1
+
+storage:
+  className: azurefile-csi
+  resultsSize: 10Gi
+  ipfsSize: 10Gi
+
+contract:
+  artifact: /app/build/contracts/Reputation.json
+  addressFile: /results/runtime/reputation-address.json
+
+fl:
+  serverPort: 8080
+  clientCount: 5
+  splitType: non_iid
+  faultyClients: ""
+
+plot:
+  enabled: false
+  mode: non_iid
+
+resultsViewer:
+  enabled: true

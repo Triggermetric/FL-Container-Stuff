@@ -1,0 +1,214 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-client-1
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-client-1
+  template:
+    metadata:
+      labels:
+        app: fl-client-1
+    spec:
+      containers:
+        - name: fl-client-1
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_client.py", "1", "non_iid"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CLIENT_ID
+              value: "1"
+            - name: FAULTY_CLIENTS
+              value: ""
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-client-2
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-client-2
+  template:
+    metadata:
+      labels:
+        app: fl-client-2
+    spec:
+      containers:
+        - name: fl-client-2
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_client.py", "2", "non_iid"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CLIENT_ID
+              value: "2"
+            - name: FAULTY_CLIENTS
+              value: ""
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-client-3
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-client-3
+  template:
+    metadata:
+      labels:
+        app: fl-client-3
+    spec:
+      containers:
+        - name: fl-client-3
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_client.py", "3", "non_iid"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CLIENT_ID
+              value: "3"
+            - name: FAULTY_CLIENTS
+              value: ""
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-client-4
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-client-4
+  template:
+    metadata:
+      labels:
+        app: fl-client-4
+    spec:
+      containers:
+        - name: fl-client-4
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_client.py", "4", "non_iid"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CLIENT_ID
+              value: "4"
+            - name: FAULTY_CLIENTS
+              value: ""
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fl-client-5
+  namespace: nt114-fl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fl-client-5
+  template:
+    metadata:
+      labels:
+        app: fl-client-5
+    spec:
+      containers:
+        - name: fl-client-5
+          image: YOUR_ACR_NAME.azurecr.io/project-nt114:latest
+          command: ["python", "fl_client.py", "5", "non_iid"]
+          envFrom:
+            - configMapRef:
+                name: fl-config
+          env:
+            - name: CLIENT_ID
+              value: "5"
+            - name: FAULTY_CLIENTS
+              value: ""
+            - name: CONTRACT_ADDRESS_FILE
+              value: /results/runtime/reputation-address.json
+          volumeMounts:
+            - name: results
+              mountPath: /app/history
+              subPath: history
+            - name: results
+              mountPath: /app/plots
+              subPath: plots
+            - name: results
+              mountPath: /results
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: fl-results
